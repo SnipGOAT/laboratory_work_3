@@ -1,0 +1,45 @@
+@startuml
+!define RECTANGLE class
+
+title "Потоки данных в целевой архитектуре"
+
+rectangle "Источники данных" {
+    [Интернет-магазин] as IM
+    [CRM] as CRM
+    [WMS] as WMS
+    [1С Торговля] as TORG
+    [1С Денежные средства] as FIN
+    [BrandAnalytics] as BA
+}
+
+rectangle "ETL (Apache Airflow)" {
+    [Extract] as E
+    [Transform] as T
+    [Load] as L
+}
+
+database "Хранилище данных (DWH)" {
+    [Staging layer] as STG
+    [Core layer (facts & dimensions)] as CORE
+    [Mart layer] as MART
+}
+
+rectangle "BI" {
+    [Tableau / Power BI] as BISystem
+}
+
+IM --> E : "заказы, клики"
+CRM --> E : "клиенты, обращения"
+WMS --> E : "остатки, движения"
+TORG --> E : "продажи, цены"
+FIN --> E : "платежи, себестоимость"
+BA --> E : "отзывы, тональность"
+
+E --> T : "сырые данные"
+T --> L : "очищенные, нормализованные"
+L --> STG
+STG --> CORE : "SCD Type 2, агрегаты"
+CORE --> MART : "витрины для отчётов"
+MART --> BISystem : "SQL / ODBC"
+
+@enduml

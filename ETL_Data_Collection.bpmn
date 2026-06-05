@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.47.0">
+  <bpmn:process id="ETL_Process" name="ETL: Сбор данных из источников в ХД" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1" name="Начало ETL">
+      <bpmn:outgoing>Flow_to_ParallelGate</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:parallelGateway id="ParallelGateway_1" name="Разветвление">
+      <bpmn:incoming>Flow_to_ParallelGate</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_ExtractWeb</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_ExtractCRM</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_ExtractWMS</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_Extract1C</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_ExtractSocial</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="ExtractWeb" name="Извлечь данные интернет-магазина">
+      <bpmn:incoming>Flow_to_ExtractWeb</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_ExtractWeb</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ExtractCRM" name="Извлечь данные CRM">
+      <bpmn:incoming>Flow_to_ExtractCRM</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_ExtractCRM</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ExtractWMS" name="Извлечь данные WMS">
+      <bpmn:incoming>Flow_to_ExtractWMS</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_ExtractWMS</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Extract1C" name="Извлечь данные 1С">
+      <bpmn:incoming>Flow_to_Extract1C</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_Extract1C</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="ExtractSocial" name="Извлечь отзывы из BrandAnalytics">
+      <bpmn:incoming>Flow_to_ExtractSocial</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_ExtractSocial</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="ParallelGateway_2" name="Сведение">
+      <bpmn:incoming>Flow_from_ExtractWeb</bpmn:incoming>
+      <bpmn:incoming>Flow_from_ExtractCRM</bpmn:incoming>
+      <bpmn:incoming>Flow_from_ExtractWMS</bpmn:incoming>
+      <bpmn:incoming>Flow_from_Extract1C</bpmn:incoming>
+      <bpmn:incoming>Flow_from_ExtractSocial</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_Transform</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:serviceTask id="Transform" name="Трансформация">
+      <bpmn:incoming>Flow_to_Transform</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_LoadStaging</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="LoadStaging" name="Загрузить в слой Staging">
+      <bpmn:incoming>Flow_to_LoadStaging</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_BuildDWH</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="BuildDWH" name="Построить Core DWH">
+      <bpmn:incoming>Flow_to_BuildDWH</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_End</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_1" name="Конец ETL">
+      <bpmn:incoming>Flow_to_End</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_to_ParallelGate" sourceRef="StartEvent_1" targetRef="ParallelGateway_1" />
+    <bpmn:sequenceFlow id="Flow_to_ExtractWeb" sourceRef="ParallelGateway_1" targetRef="ExtractWeb" />
+    <bpmn:sequenceFlow id="Flow_to_ExtractCRM" sourceRef="ParallelGateway_1" targetRef="ExtractCRM" />
+    <bpmn:sequenceFlow id="Flow_to_ExtractWMS" sourceRef="ParallelGateway_1" targetRef="ExtractWMS" />
+    <bpmn:sequenceFlow id="Flow_to_Extract1C" sourceRef="ParallelGateway_1" targetRef="Extract1C" />
+    <bpmn:sequenceFlow id="Flow_to_ExtractSocial" sourceRef="ParallelGateway_1" targetRef="ExtractSocial" />
+    <bpmn:sequenceFlow id="Flow_from_ExtractWeb" sourceRef="ExtractWeb" targetRef="ParallelGateway_2" />
+    <bpmn:sequenceFlow id="Flow_from_ExtractCRM" sourceRef="ExtractCRM" targetRef="ParallelGateway_2" />
+    <bpmn:sequenceFlow id="Flow_from_ExtractWMS" sourceRef="ExtractWMS" targetRef="ParallelGateway_2" />
+    <bpmn:sequenceFlow id="Flow_from_Extract1C" sourceRef="Extract1C" targetRef="ParallelGateway_2" />
+    <bpmn:sequenceFlow id="Flow_from_ExtractSocial" sourceRef="ExtractSocial" targetRef="ParallelGateway_2" />
+    <bpmn:sequenceFlow id="Flow_to_Transform" sourceRef="ParallelGateway_2" targetRef="Transform" />
+    <bpmn:sequenceFlow id="Flow_to_LoadStaging" sourceRef="Transform" targetRef="LoadStaging" />
+    <bpmn:sequenceFlow id="Flow_to_BuildDWH" sourceRef="LoadStaging" targetRef="BuildDWH" />
+    <bpmn:sequenceFlow id="Flow_to_End" sourceRef="BuildDWH" targetRef="EndEvent_1" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ETL_Process">
+      <bpmndi:BPMNShape id="ParallelGateway_1_di" bpmnElement="ParallelGateway_1">
+        <dc:Bounds x="280" y="225" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="224.5" y="213" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExtractSocial_di" bpmnElement="ExtractSocial">
+        <dc:Bounds x="540" y="290" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ParallelGateway_2_di" bpmnElement="ParallelGateway_2">
+        <dc:Bounds x="690" y="225" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="734" y="266" width="51" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Transform_di" bpmnElement="Transform">
+        <dc:Bounds x="790" y="210" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LoadStaging_di" bpmnElement="LoadStaging">
+        <dc:Bounds x="930" y="210" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="BuildDWH_di" bpmnElement="BuildDWH">
+        <dc:Bounds x="1070" y="210" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="1220" y="230" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="1211" y="266" width="55" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExtractWMS_di" bpmnElement="ExtractWMS">
+        <dc:Bounds x="255" y="330" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExtractWeb_di" bpmnElement="ExtractWeb">
+        <dc:Bounds x="540" y="170" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Extract1C_di" bpmnElement="Extract1C">
+        <dc:Bounds x="410" y="79" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ExtractCRM_di" bpmnElement="ExtractCRM">
+        <dc:Bounds x="440" y="218" width="100" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="172" y="230" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="159" y="266" width="62" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_to_ParallelGate_edge" bpmnElement="Flow_to_ParallelGate">
+        <di:waypoint x="208" y="248" />
+        <di:waypoint x="281" y="251" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_ExtractWeb_edge" bpmnElement="Flow_to_ExtractWeb">
+        <di:waypoint x="305" y="225" />
+        <di:waypoint x="305" y="200" />
+        <di:waypoint x="540" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_ExtractCRM_edge" bpmnElement="Flow_to_ExtractCRM">
+        <di:waypoint x="328" y="252" />
+        <di:waypoint x="440" y="258" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_ExtractWMS_edge" bpmnElement="Flow_to_ExtractWMS">
+        <di:waypoint x="305" y="275" />
+        <di:waypoint x="305" y="330" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_Extract1C_edge" bpmnElement="Flow_to_Extract1C">
+        <di:waypoint x="305" y="225" />
+        <di:waypoint x="305" y="88" />
+        <di:waypoint x="410" y="88" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_ExtractSocial_edge" bpmnElement="Flow_to_ExtractSocial">
+        <di:waypoint x="330" y="250" />
+        <di:waypoint x="540" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_from_ExtractWeb_edge" bpmnElement="Flow_from_ExtractWeb">
+        <di:waypoint x="640" y="179" />
+        <di:waypoint x="715" y="179" />
+        <di:waypoint x="715" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_from_ExtractCRM_edge" bpmnElement="Flow_from_ExtractCRM">
+        <di:waypoint x="540" y="248" />
+        <di:waypoint x="690" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_from_ExtractWMS_edge" bpmnElement="Flow_from_ExtractWMS">
+        <di:waypoint x="355" y="377" />
+        <di:waypoint x="715" y="377" />
+        <di:waypoint x="715" y="275" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_from_Extract1C_edge" bpmnElement="Flow_from_Extract1C">
+        <di:waypoint x="510" y="109" />
+        <di:waypoint x="715" y="109" />
+        <di:waypoint x="715" y="225" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_from_ExtractSocial_edge" bpmnElement="Flow_from_ExtractSocial">
+        <di:waypoint x="640" y="320" />
+        <di:waypoint x="690" y="320" />
+        <di:waypoint x="690" y="250" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_Transform_edge" bpmnElement="Flow_to_Transform">
+        <di:waypoint x="740" y="250" />
+        <di:waypoint x="790" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_LoadStaging_edge" bpmnElement="Flow_to_LoadStaging">
+        <di:waypoint x="890" y="240" />
+        <di:waypoint x="930" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_BuildDWH_edge" bpmnElement="Flow_to_BuildDWH">
+        <di:waypoint x="1030" y="240" />
+        <di:waypoint x="1070" y="240" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_to_End_edge" bpmnElement="Flow_to_End">
+        <di:waypoint x="1170" y="240" />
+        <di:waypoint x="1220" y="248" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,23 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Контекстная диаграмма целевой архитектуры (с ХД и BI)
+
+Person(customer, "Клиент")
+Person(analyst, "Аналитик", "Строит отчёты и прогнозы")
+Person(manager, "Менеджер", "Принимает решения на основе BI")
+
+System(retail_systems, "Существующие системы", "Интернет-магазин, CRM, WMS, 1С")
+System(etl, "ETL-процесс", "Извлечение, трансформация, загрузка")
+System(dwh, "Хранилище данных (DWH)", "Централизованная аналитическая БД")
+System(bi, "BI-платформа", "Power BI / Tableau / Superset")
+System_Ext(social, "BrandAnalytics", "Отзывы, тональность")
+
+Rel(customer, retail_systems, "Взаимодействует")
+Rel(retail_systems, etl, "Выгружает операционные данные", "JDBC/API")
+Rel(social, etl, "Поставляет отзывы", "API")
+Rel(etl, dwh, "Загружает очищенные и объединённые данные")
+Rel(dwh, bi, "Запрашивает данные", "SQL/MDX")
+Rel(bi, analyst, "Предоставляет дашборды")
+Rel(bi, manager, "Отображает KPI и прогнозы")
+@enduml
