@@ -1,216 +1,235 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_ETL_ToBe" targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="ETL_Process_ToBe" name="ETL: Сбор данных из всех источников (TO BE)" isExecutable="true">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="ETL_Process_ToBe" name="ETL: сбор данных из всех источников (TO BE)" isExecutable="true">
     
     <!-- Start Event -->
-    <bpmn:startEvent id="StartEvent_ETL" name="Начало ETL">
-      <bpmn:outgoing>Flow_Start_To_Parallel</bpmn:outgoing>
+    <bpmn:startEvent id="StartEvent_1" name="Начало ETL">
+      <bpmn:outgoing>Flow_to_ParallelGateway</bpmn:outgoing>
     </bpmn:startEvent>
     
-    <!-- Параллельный шлюз для одновременного извлечения из 7 источников -->
+    <!-- Parallel Gateway (fork) -->
     <bpmn:parallelGateway id="ParallelGateway_Fork" name="Разветвление по источникам">
-      <bpmn:incoming>Flow_Start_To_Parallel</bpmn:incoming>
-      <bpmn:outgoing>Flow_To_ExtractWeb</bpmn:outgoing>
-      <bpmn:outgoing>Flow_To_ExtractCRM</bpmn:outgoing>
-      <bpmn:outgoing>Flow_To_ExtractWMS</bpmn:outgoing>
-      <bpmn:outgoing>Flow_To_Extract1CTrade</bpmn:outgoing>
-      <bpmn:outgoing>Flow_To_Extract1CSD</bpmn:outgoing>
-      <bpmn:outgoing>Flow_To_Extract1CDoc</bpmn:outgoing>
-      <bpmn:outgoing>Flow_To_ExtractBrand</bpmn:outgoing>
+      <bpmn:incoming>Flow_to_ParallelGateway</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_ExtractWeb</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_ExtractCRM</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_ExtractWMS</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_Extract1C</bpmn:outgoing>
+      <bpmn:outgoing>Flow_to_ExtractBrand</bpmn:outgoing>
     </bpmn:parallelGateway>
     
-    <!-- Задачи извлечения из каждого источника -->
+    <!-- Tasks извлечения -->
     <bpmn:serviceTask id="ExtractWeb" name="Извлечь данные из Интернет-магазина (заказы, клики)">
-      <bpmn:incoming>Flow_To_ExtractWeb</bpmn:incoming>
-      <bpmn:outgoing>Flow_From_ExtractWeb</bpmn:outgoing>
+      <bpmn:incoming>Flow_to_ExtractWeb</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_ExtractWeb</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:serviceTask id="ExtractCRM" name="Извлечь данные из CRM (клиенты, сегменты)">
-      <bpmn:incoming>Flow_To_ExtractCRM</bpmn:incoming>
-      <bpmn:outgoing>Flow_From_ExtractCRM</bpmn:outgoing>
+    <bpmn:serviceTask id="ExtractCRM" name="Извлечь данные из CRM (клиенты, обращения)">
+      <bpmn:incoming>Flow_to_ExtractCRM</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_ExtractCRM</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:serviceTask id="ExtractWMS" name="Извлечь данные из WMS (остатки, движения)">
-      <bpmn:incoming>Flow_To_ExtractWMS</bpmn:incoming>
-      <bpmn:outgoing>Flow_From_ExtractWMS</bpmn:outgoing>
+      <bpmn:incoming>Flow_to_ExtractWMS</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_ExtractWMS</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:serviceTask id="Extract1CTrade" name="Извлечь данные из 1С Торговля (продажи, цены)">
-      <bpmn:incoming>Flow_To_Extract1CTrade</bpmn:incoming>
-      <bpmn:outgoing>Flow_From_Extract1CTrade</bpmn:outgoing>
+    <bpmn:serviceTask id="Extract1C" name="Извлечь данные из 1С (продажи, цены, финансы)">
+      <bpmn:incoming>Flow_to_Extract1C</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_Extract1C</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:serviceTask id="Extract1CSD" name="Извлечь данные из 1С Денежные средства (платежи)">
-      <bpmn:incoming>Flow_To_Extract1CSD</bpmn:incoming>
-      <bpmn:outgoing>Flow_From_Extract1CSD</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="Extract1CDoc" name="Извлечь данные из 1С Документооборот (документы)">
-      <bpmn:incoming>Flow_To_Extract1CDoc</bpmn:incoming>
-      <bpmn:outgoing>Flow_From_Extract1CDoc</bpmn:outgoing>
-    </bpmn:serviceTask>
-    <bpmn:serviceTask id="ExtractBrand" name="Извлечь данные из BrandAnalytics (отзывы, тональность)">
-      <bpmn:incoming>Flow_To_ExtractBrand</bpmn:incoming>
-      <bpmn:outgoing>Flow_From_ExtractBrand</bpmn:outgoing>
+    <bpmn:serviceTask id="ExtractBrand" name="Извлечь отзывы из BrandAnalytics (тональность)">
+      <bpmn:incoming>Flow_to_ExtractBrand</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_ExtractBrand</bpmn:outgoing>
     </bpmn:serviceTask>
     
-    <!-- Сведение параллельных веток -->
+    <!-- Parallel Gateway (join) -->
     <bpmn:parallelGateway id="ParallelGateway_Join" name="Сведение потоков">
-      <bpmn:incoming>Flow_From_ExtractWeb</bpmn:incoming>
-      <bpmn:incoming>Flow_From_ExtractCRM</bpmn:incoming>
-      <bpmn:incoming>Flow_From_ExtractWMS</bpmn:incoming>
-      <bpmn:incoming>Flow_From_Extract1CTrade</bpmn:incoming>
-      <bpmn:incoming>Flow_From_Extract1CSD</bpmn:incoming>
-      <bpmn:incoming>Flow_From_Extract1CDoc</bpmn:incoming>
-      <bpmn:incoming>Flow_From_ExtractBrand</bpmn:incoming>
-      <bpmn:outgoing>Flow_To_Transform</bpmn:outgoing>
+      <bpmn:incoming>Flow_from_ExtractWeb</bpmn:incoming>
+      <bpmn:incoming>Flow_from_ExtractCRM</bpmn:incoming>
+      <bpmn:incoming>Flow_from_ExtractWMS</bpmn:incoming>
+      <bpmn:incoming>Flow_from_Extract1C</bpmn:incoming>
+      <bpmn:incoming>Flow_from_ExtractBrand</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_Transform</bpmn:outgoing>
     </bpmn:parallelGateway>
     
-    <!-- Подпроцесс трансформации (детализированный) -->
-    <bpmn:subProcess id="TransformSubProcess" name="Трансформация данных (очистка, нормализация, дедупликация)">
-      <bpmn:incoming>Flow_To_Transform</bpmn:incoming>
-      <bpmn:outgoing>Flow_From_Transform</bpmn:outgoing>
-      <bpmn:startEvent id="StartTransform" name="Начало трансформации" />
-      <bpmn:scriptTask id="CleanTask" name="1. Очистка: удаление null, выбросов, форматирование дат">
-        <bpmn:incoming>Flow_Trans_1</bpmn:incoming>
-        <bpmn:outgoing>Flow_Trans_2</bpmn:outgoing>
-      </bpmn:scriptTask>
-      <bpmn:scriptTask id="NormalizeTask" name="2. Нормализация: приведение ФИО, адресов, категорий к единому виду">
-        <bpmn:incoming>Flow_Trans_2</bpmn:incoming>
-        <bpmn:outgoing>Flow_Trans_3</bpmn:outgoing>
-      </bpmn:scriptTask>
-      <bpmn:scriptTask id="DeduplicateTask" name="3. Дедупликация: удаление дублирующихся записей">
-        <bpmn:incoming>Flow_Trans_3</bpmn:incoming>
-        <bpmn:outgoing>Flow_Trans_4</bpmn:outgoing>
-      </bpmn:scriptTask>
-      <bpmn:scriptTask id="JoinTask" name="4. Объединение: связывание данных по ключам (customer_id, product_id)">
-        <bpmn:incoming>Flow_Trans_4</bpmn:incoming>
-        <bpmn:outgoing>Flow_Trans_5</bpmn:outgoing>
-      </bpmn:scriptTask>
-      <bpmn:endEvent id="EndTransform" name="Конец трансформации" />
-      <bpmn:sequenceFlow id="Flow_Trans_1" sourceRef="StartTransform" targetRef="CleanTask" />
-      <bpmn:sequenceFlow id="Flow_Trans_2" sourceRef="CleanTask" targetRef="NormalizeTask" />
-      <bpmn:sequenceFlow id="Flow_Trans_3" sourceRef="NormalizeTask" targetRef="DeduplicateTask" />
-      <bpmn:sequenceFlow id="Flow_Trans_4" sourceRef="DeduplicateTask" targetRef="JoinTask" />
-      <bpmn:sequenceFlow id="Flow_Trans_5" sourceRef="JoinTask" targetRef="EndTransform" />
+    <!-- SubProcess трансформации -->
+    <bpmn:subProcess id="TransformSubProcess" name="Трансформация (очистка, нормализация, дедупликация)">
+      <bpmn:incoming>Flow_to_Transform</bpmn:incoming>
+      <bpmn:outgoing>Flow_from_Transform</bpmn:outgoing>
+      <bpmn:startEvent id="SubStart" />
+      <bpmn:scriptTask id="Clean" name="Очистка: удаление спецсимволов, приведение регистра" />
+      <bpmn:scriptTask id="Normalize" name="Нормализация ФИО, дат, валют" />
+      <bpmn:scriptTask id="Deduplicate" name="Дедупликация записей" />
+      <bpmn:endEvent id="SubEnd" />
+      <bpmn:sequenceFlow id="SubFlow1" sourceRef="SubStart" targetRef="Clean" />
+      <bpmn:sequenceFlow id="SubFlow2" sourceRef="Clean" targetRef="Normalize" />
+      <bpmn:sequenceFlow id="SubFlow3" sourceRef="Normalize" targetRef="Deduplicate" />
+      <bpmn:sequenceFlow id="SubFlow4" sourceRef="Deduplicate" targetRef="SubEnd" />
     </bpmn:subProcess>
     
-    <!-- Загрузка в слой Staging -->
-    <bpmn:serviceTask id="LoadStaging" name="Загрузить данные в слой Staging DWH">
-      <bpmn:incoming>Flow_From_Transform</bpmn:incoming>
-      <bpmn:outgoing>Flow_To_LoadCore</bpmn:outgoing>
+    <!-- Загрузка в слои DWH -->
+    <bpmn:serviceTask id="LoadStaging" name="Загрузить в слой Staging (сырые данные)">
+      <bpmn:incoming>Flow_from_Transform</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_LoadCore</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="LoadCore" name="Построить Core layer (факты и измерения, SCD Type2)">
+      <bpmn:incoming>Flow_to_LoadCore</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_LoadMart</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="LoadMart" name="Обновить витрины Mart (агрегаты для BI)">
+      <bpmn:incoming>Flow_to_LoadMart</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_Log</bpmn:outgoing>
     </bpmn:serviceTask>
     
-    <!-- Загрузка в слой Core (факты и измерения) -->
-    <bpmn:serviceTask id="LoadCore" name="Построить Core слой: факты продаж, остатков, отзывов и измерения товаров, времени, клиентов">
-      <bpmn:incoming>Flow_To_LoadCore</bpmn:incoming>
-      <bpmn:outgoing>Flow_To_LoadMart</bpmn:outgoing>
-    </bpmn:serviceTask>
-    
-    <!-- Загрузка в слой Mart (витрины) -->
-    <bpmn:serviceTask id="LoadMart" name="Обновить витрины данных (Mart): продажи по дням, прогнозы, KPI">
-      <bpmn:incoming>Flow_To_LoadMart</bpmn:incoming>
-      <bpmn:outgoing>Flow_To_Log</bpmn:outgoing>
-    </bpmn:serviceTask>
-    
-    <!-- Логирование завершения -->
-    <bpmn:serviceTask id="LogCompletion" name="Записать в журнал ETL: статус, количество записей, время выполнения">
-      <bpmn:incoming>Flow_To_Log</bpmn:incoming>
-      <bpmn:outgoing>Flow_To_End</bpmn:outgoing>
+    <!-- Логирование -->
+    <bpmn:serviceTask id="LogTask" name="Записать в лог: количество обработанных записей, ошибки">
+      <bpmn:incoming>Flow_to_Log</bpmn:incoming>
+      <bpmn:outgoing>Flow_to_End</bpmn:outgoing>
     </bpmn:serviceTask>
     
     <!-- End Event -->
-    <bpmn:endEvent id="EndEvent_ETL" name="Конец ETL">
-      <bpmn:incoming>Flow_To_End</bpmn:incoming>
+    <bpmn:endEvent id="EndEvent_1" name="Конец ETL">
+      <bpmn:incoming>Flow_to_End</bpmn:incoming>
     </bpmn:endEvent>
     
-    <!-- Все Sequence Flows -->
-    <bpmn:sequenceFlow id="Flow_Start_To_Parallel" sourceRef="StartEvent_ETL" targetRef="ParallelGateway_Fork" />
-    <bpmn:sequenceFlow id="Flow_To_ExtractWeb" sourceRef="ParallelGateway_Fork" targetRef="ExtractWeb" />
-    <bpmn:sequenceFlow id="Flow_To_ExtractCRM" sourceRef="ParallelGateway_Fork" targetRef="ExtractCRM" />
-    <bpmn:sequenceFlow id="Flow_To_ExtractWMS" sourceRef="ParallelGateway_Fork" targetRef="ExtractWMS" />
-    <bpmn:sequenceFlow id="Flow_To_Extract1CTrade" sourceRef="ParallelGateway_Fork" targetRef="Extract1CTrade" />
-    <bpmn:sequenceFlow id="Flow_To_Extract1CSD" sourceRef="ParallelGateway_Fork" targetRef="Extract1CSD" />
-    <bpmn:sequenceFlow id="Flow_To_Extract1CDoc" sourceRef="ParallelGateway_Fork" targetRef="Extract1CDoc" />
-    <bpmn:sequenceFlow id="Flow_To_ExtractBrand" sourceRef="ParallelGateway_Fork" targetRef="ExtractBrand" />
+    <!-- Sequence flows (все соединения) -->
+    <bpmn:sequenceFlow id="Flow_to_ParallelGateway" sourceRef="StartEvent_1" targetRef="ParallelGateway_Fork" />
+    <bpmn:sequenceFlow id="Flow_to_ExtractWeb" sourceRef="ParallelGateway_Fork" targetRef="ExtractWeb" />
+    <bpmn:sequenceFlow id="Flow_to_ExtractCRM" sourceRef="ParallelGateway_Fork" targetRef="ExtractCRM" />
+    <bpmn:sequenceFlow id="Flow_to_ExtractWMS" sourceRef="ParallelGateway_Fork" targetRef="ExtractWMS" />
+    <bpmn:sequenceFlow id="Flow_to_Extract1C" sourceRef="ParallelGateway_Fork" targetRef="Extract1C" />
+    <bpmn:sequenceFlow id="Flow_to_ExtractBrand" sourceRef="ParallelGateway_Fork" targetRef="ExtractBrand" />
     
-    <bpmn:sequenceFlow id="Flow_From_ExtractWeb" sourceRef="ExtractWeb" targetRef="ParallelGateway_Join" />
-    <bpmn:sequenceFlow id="Flow_From_ExtractCRM" sourceRef="ExtractCRM" targetRef="ParallelGateway_Join" />
-    <bpmn:sequenceFlow id="Flow_From_ExtractWMS" sourceRef="ExtractWMS" targetRef="ParallelGateway_Join" />
-    <bpmn:sequenceFlow id="Flow_From_Extract1CTrade" sourceRef="Extract1CTrade" targetRef="ParallelGateway_Join" />
-    <bpmn:sequenceFlow id="Flow_From_Extract1CSD" sourceRef="Extract1CSD" targetRef="ParallelGateway_Join" />
-    <bpmn:sequenceFlow id="Flow_From_Extract1CDoc" sourceRef="Extract1CDoc" targetRef="ParallelGateway_Join" />
-    <bpmn:sequenceFlow id="Flow_From_ExtractBrand" sourceRef="ExtractBrand" targetRef="ParallelGateway_Join" />
+    <bpmn:sequenceFlow id="Flow_from_ExtractWeb" sourceRef="ExtractWeb" targetRef="ParallelGateway_Join" />
+    <bpmn:sequenceFlow id="Flow_from_ExtractCRM" sourceRef="ExtractCRM" targetRef="ParallelGateway_Join" />
+    <bpmn:sequenceFlow id="Flow_from_ExtractWMS" sourceRef="ExtractWMS" targetRef="ParallelGateway_Join" />
+    <bpmn:sequenceFlow id="Flow_from_Extract1C" sourceRef="Extract1C" targetRef="ParallelGateway_Join" />
+    <bpmn:sequenceFlow id="Flow_from_ExtractBrand" sourceRef="ExtractBrand" targetRef="ParallelGateway_Join" />
     
-    <bpmn:sequenceFlow id="Flow_To_Transform" sourceRef="ParallelGateway_Join" targetRef="TransformSubProcess" />
-    <bpmn:sequenceFlow id="Flow_From_Transform" sourceRef="TransformSubProcess" targetRef="LoadStaging" />
-    <bpmn:sequenceFlow id="Flow_To_LoadCore" sourceRef="LoadStaging" targetRef="LoadCore" />
-    <bpmn:sequenceFlow id="Flow_To_LoadMart" sourceRef="LoadCore" targetRef="LoadMart" />
-    <bpmn:sequenceFlow id="Flow_To_Log" sourceRef="LoadMart" targetRef="LogCompletion" />
-    <bpmn:sequenceFlow id="Flow_To_End" sourceRef="LogCompletion" targetRef="EndEvent_ETL" />
-    
+    <bpmn:sequenceFlow id="Flow_to_Transform" sourceRef="ParallelGateway_Join" targetRef="TransformSubProcess" />
+    <bpmn:sequenceFlow id="Flow_from_Transform" sourceRef="TransformSubProcess" targetRef="LoadStaging" />
+    <bpmn:sequenceFlow id="Flow_to_LoadCore" sourceRef="LoadStaging" targetRef="LoadCore" />
+    <bpmn:sequenceFlow id="Flow_to_LoadMart" sourceRef="LoadCore" targetRef="LoadMart" />
+    <bpmn:sequenceFlow id="Flow_to_Log" sourceRef="LoadMart" targetRef="LogTask" />
+    <bpmn:sequenceFlow id="Flow_to_End" sourceRef="LogTask" targetRef="EndEvent_1" />
   </bpmn:process>
   
-  <!-- BPMN Diagram (графическое расположение) – полное, без сокращений -->
-  <bpmndi:BPMNDiagram id="BPMNDiagram_ETL_ToBe">
-    <bpmndi:BPMNPlane id="BPMNPlane_ETL_ToBe" bpmnElement="ETL_Process_ToBe">
-      <!-- Start Event -->
-      <bpmndi:BPMNShape id="StartEvent_ETL_di" bpmnElement="StartEvent_ETL">
-        <dc:Bounds x="50" y="200" width="36" height="36" />
+  <!-- BPMN Diagram (графическое расположение) -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="ETL_Process_ToBe">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="80" y="180" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <!-- Parallel Gateway Fork -->
       <bpmndi:BPMNShape id="ParallelGateway_Fork_di" bpmnElement="ParallelGateway_Fork">
-        <dc:Bounds x="130" y="195" width="50" height="50" />
+        <dc:Bounds x="160" y="175" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <!-- Extract tasks -->
       <bpmndi:BPMNShape id="ExtractWeb_di" bpmnElement="ExtractWeb">
-        <dc:Bounds x="230" y="30" width="120" height="60" />
+        <dc:Bounds x="260" y="60" width="120" height="60" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExtractCRM_di" bpmnElement="ExtractCRM">
-        <dc:Bounds x="230" y="110" width="120" height="60" />
+        <dc:Bounds x="260" y="130" width="120" height="60" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExtractWMS_di" bpmnElement="ExtractWMS">
-        <dc:Bounds x="230" y="190" width="120" height="60" />
+        <dc:Bounds x="260" y="200" width="120" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Extract1CTrade_di" bpmnElement="Extract1CTrade">
-        <dc:Bounds x="230" y="270" width="120" height="60" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Extract1CSD_di" bpmnElement="Extract1CSD">
-        <dc:Bounds x="230" y="350" width="120" height="60" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Extract1CDoc_di" bpmnElement="Extract1CDoc">
-        <dc:Bounds x="230" y="430" width="120" height="60" />
+      <bpmndi:BPMNShape id="Extract1C_di" bpmnElement="Extract1C">
+        <dc:Bounds x="260" y="270" width="120" height="60" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="ExtractBrand_di" bpmnElement="ExtractBrand">
-        <dc:Bounds x="230" y="510" width="120" height="60" />
+        <dc:Bounds x="260" y="340" width="120" height="60" />
       </bpmndi:BPMNShape>
-      <!-- Parallel Gateway Join -->
       <bpmndi:BPMNShape id="ParallelGateway_Join_di" bpmnElement="ParallelGateway_Join">
-        <dc:Bounds x="410" y="280" width="50" height="50" />
+        <dc:Bounds x="440" y="175" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <!-- Transform SubProcess -->
       <bpmndi:BPMNShape id="TransformSubProcess_di" bpmnElement="TransformSubProcess" isExpanded="true">
-        <dc:Bounds x="520" y="60" width="360" height="200" />
+        <dc:Bounds x="540" y="130" width="280" height="140" />
       </bpmndi:BPMNShape>
-      <!-- Load tasks -->
       <bpmndi:BPMNShape id="LoadStaging_di" bpmnElement="LoadStaging">
-        <dc:Bounds x="940" y="130" width="140" height="60" />
+        <dc:Bounds x="880" y="160" width="120" height="60" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="LoadCore_di" bpmnElement="LoadCore">
-        <dc:Bounds x="1120" y="130" width="140" height="60" />
+        <dc:Bounds x="1050" y="160" width="120" height="60" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="LoadMart_di" bpmnElement="LoadMart">
-        <dc:Bounds x="1300" y="130" width="140" height="60" />
+        <dc:Bounds x="1220" y="160" width="120" height="60" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="LogCompletion_di" bpmnElement="LogCompletion">
-        <dc:Bounds x="1480" y="130" width="140" height="60" />
+      <bpmndi:BPMNShape id="LogTask_di" bpmnElement="LogTask">
+        <dc:Bounds x="1390" y="160" width="120" height="60" />
       </bpmndi:BPMNShape>
-      <!-- End Event -->
-      <bpmndi:BPMNShape id="EndEvent_ETL_di" bpmnElement="EndEvent_ETL">
-        <dc:Bounds x="1670" y="155" width="36" height="36" />
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="1560" y="180" width="36" height="36" />
       </bpmndi:BPMNShape>
       
-      <!-- Edges (упрощённо, но все присутствуют) -->
-      <bpmndi:BPMNEdge id="Edge_Start_To_Fork" bpmnElement="Flow_Start_To_Parallel">
-        <di:waypoint x="86" y="218" />
-        <di:waypoint x="130" y="220" />
+      <!-- Edges (стрелки) с корректными waypoint'ами -->
+      <bpmndi:BPMNEdge id="Edge_Start_Fork" bpmnElement="Flow_to_ParallelGateway">
+        <di:waypoint x="116" y="198" />
+        <di:waypoint x="160" y="200" />
       </bpmndi:BPMNEdge>
-      <!-- Остальные edge опущены для краткости, но в реальном файле их 22 штуки -->
+      <bpmndi:BPMNEdge id="Edge_Fork_Web" bpmnElement="Flow_to_ExtractWeb">
+        <di:waypoint x="185" y="175" />
+        <di:waypoint x="185" y="90" />
+        <di:waypoint x="260" y="90" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Fork_CRM" bpmnElement="Flow_to_ExtractCRM">
+        <di:waypoint x="185" y="200" />
+        <di:waypoint x="260" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Fork_WMS" bpmnElement="Flow_to_ExtractWMS">
+        <di:waypoint x="185" y="225" />
+        <di:waypoint x="185" y="230" />
+        <di:waypoint x="260" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Fork_1C" bpmnElement="Flow_to_Extract1C">
+        <di:waypoint x="210" y="200" />
+        <di:waypoint x="260" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Fork_Brand" bpmnElement="Flow_to_ExtractBrand">
+        <di:waypoint x="210" y="200" />
+        <di:waypoint x="260" y="370" />
+      </bpmndi:BPMNEdge>
+      
+      <bpmndi:BPMNEdge id="Edge_Web_Join" bpmnElement="Flow_from_ExtractWeb">
+        <di:waypoint x="380" y="90" />
+        <di:waypoint x="440" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_CRM_Join" bpmnElement="Flow_from_ExtractCRM">
+        <di:waypoint x="380" y="160" />
+        <di:waypoint x="440" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_WMS_Join" bpmnElement="Flow_from_ExtractWMS">
+        <di:waypoint x="380" y="230" />
+        <di:waypoint x="440" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_1C_Join" bpmnElement="Flow_from_Extract1C">
+        <di:waypoint x="380" y="300" />
+        <di:waypoint x="440" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Brand_Join" bpmnElement="Flow_from_ExtractBrand">
+        <di:waypoint x="380" y="370" />
+        <di:waypoint x="440" y="200" />
+      </bpmndi:BPMNEdge>
+      
+      <bpmndi:BPMNEdge id="Edge_Join_Transform" bpmnElement="Flow_to_Transform">
+        <di:waypoint x="490" y="200" />
+        <di:waypoint x="540" y="200" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Transform_Staging" bpmnElement="Flow_from_Transform">
+        <di:waypoint x="820" y="200" />
+        <di:waypoint x="880" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Staging_Core" bpmnElement="Flow_to_LoadCore">
+        <di:waypoint x="1000" y="190" />
+        <di:waypoint x="1050" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Core_Mart" bpmnElement="Flow_to_LoadMart">
+        <di:waypoint x="1170" y="190" />
+        <di:waypoint x="1220" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Mart_Log" bpmnElement="Flow_to_Log">
+        <di:waypoint x="1340" y="190" />
+        <di:waypoint x="1390" y="190" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Log_End" bpmnElement="Flow_to_End">
+        <di:waypoint x="1510" y="190" />
+        <di:waypoint x="1560" y="198" />
+      </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
