@@ -1,0 +1,54 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Контейнерная диаграмма – Целевая архитектура (TO BE)
+
+Person(customer, "Клиент")
+
+System_Boundary(target, "Розничное предприятие (TO BE)") {
+    ' Существующие контейнеры
+    Container(web, "Web-сайт", "React", "Каталог, корзина, оплата")
+    Container(mobile, "Мобильное приложение", "Kotlin/Swift", "Заказы, уведомления")
+    Container(crm, "CRM", "Java + PostgreSQL", "Клиенты, заявки")
+    Container(wms, "WMS", "C# + MSSQL", "Склад, остатки")
+    Container(ones_trade, "1С Торговля", "MS SQL", "Продажи, товары, цены")
+    Container(ones_sd, "1С Денежные средства", "MS SQL", "Финансы, платежи")
+    Container(ones_doc, "1С Документооборот", "MS SQL", "Договоры, накладные")
+    
+    ' Новые контейнеры целевой архитектуры
+    Container(etl_server, "ETL-сервер", "Python + Apache Airflow", "Оркестрация задач, извлечение, трансформация, загрузка")
+    
+    ContainerDb(dwh, "Хранилище данных (DWH)", "ClickHouse / PostgreSQL", "Три слоя: Staging, Core, Mart")
+    
+    Container(bi_server, "BI-сервер", "Tableau Server / Power BI Report Server", "Визуализация, прогностика, дашборды")
+}
+
+' Внешняя система
+ContainerDb(brand_ext, "BrandAnalytics", "Внешний API", "Отзывы, тональность, ключевые слова")
+
+' Связи от существующих систем к ETL
+Rel(web, etl_server, "Логи заказов, клики", "REST API (JSON)")
+Rel(mobile, etl_server, "Логи действий пользователей", "REST API")
+Rel(crm, etl_server, "Данные клиентов (сегмент, обращения)", "JDBC")
+Rel(wms, etl_server, "Остатки на складе, движения", "JDBC")
+Rel(ones_trade, etl_server, "Продажи, цены, себестоимость", "JDBC")
+Rel(ones_sd, etl_server, "Платежи, кассовые операции", "JDBC")
+Rel(brand_ext, etl_server, "Отзывы, тональность", "REST API")
+
+' Связи ETL → DWH
+Rel(etl_server, dwh, "Загрузка в слой Staging (сырые данные)", "INSERT / COPY")
+Rel(etl_server, dwh, "Трансформация в Core (факты и измерения)", "SQL / Python")
+Rel(etl_server, dwh, "Построение витрин Mart", "SQL")
+
+' Связи DWH → BI
+Rel(dwh, bi_server, "Запросы на SQL / MDX", "ODBC / JDBC")
+
+' Примечание о слоях DWH
+note right of dwh
+  **Слои DWH:**
+  - **Staging**: копия исходных данных
+  - **Core**: нормализованные факты и измерения (звезда)
+  - **Mart**: агрегированные витрины для BI
+end note
+
+@enduml
