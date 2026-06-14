@@ -1,45 +1,77 @@
 @startuml
 !define RECTANGLE class
 
-title "Потоки данных в целевой архитектуре"
+title "Потоки данных в целевой архитектуре (TO BE) – от источников до BI"
 
+' Источники данных (верхний уровень)
 rectangle "Источники данных" {
-    [Интернет-магазин] as IM
+    [Интернет-магазин (web + mobile)] as IM
     [CRM] as CRM
     [WMS] as WMS
     [1С Торговля] as TORG
     [1С Денежные средства] as FIN
+    [1С Документооборот] as DOC
     [BrandAnalytics] as BA
 }
 
-rectangle "ETL (Apache Airflow)" {
-    [Extract] as E
-    [Transform] as T
-    [Load] as L
+' ETL-процесс
+rectangle "ETL (Apache Airflow + Python)" {
+    [Extract (извлечение)] as E
+    [Transform (очистка, нормализация, дедупликация)] as T
+    [Load (загрузка)] as L
 }
 
-database "Хранилище данных (DWH)" {
-    [Staging layer] as STG
-    [Core layer (facts & dimensions)] as CORE
-    [Mart layer] as MART
+' Хранилище данных (трехслойное)
+database "Хранилище данных (DWH) – ClickHouse" {
+    [Staging layer (сырые данные)] as STG
+    [Core layer (факты и измерения)] as CORE
+    [Mart layer (витрины)] as MART
 }
 
-rectangle "BI" {
-    [Tableau / Power BI] as BISystem
+' BI-система
+rectangle "BI (Tableau / Power BI)" {
+    [Дашборды\nОтчёты\nПрогнозы] as BI
 }
 
-IM --> E : "заказы, клики"
-CRM --> E : "клиенты, обращения"
-WMS --> E : "остатки, движения"
-TORG --> E : "продажи, цены"
-FIN --> E : "платежи, себестоимость"
-BA --> E : "отзывы, тональность"
+' Потоки от источников к ETL (Extract)
+IM --> E : "заказы, клики, корзины (JSON/CSV)"
+CRM --> E : "клиенты, сегменты, обращения (JDBC)"
+WMS --> E : "остатки, движения, инвентаризации (JDBC)"
+TORG --> E : "продажи, цены, себестоимость (JDBC)"
+FIN --> E : "платежи, касса, выручка (JDBC)"
+DOC --> E : "договоры, накладные (JDBC)"
+BA --> E : "отзывы, тональность, ключевые слова (REST API)"
 
-E --> T : "сырые данные"
-T --> L : "очищенные, нормализованные"
-L --> STG
-STG --> CORE : "SCD Type 2, агрегаты"
-CORE --> MART : "витрины для отчётов"
-MART --> BISystem : "SQL / ODBC"
+' Потоки внутри ETL
+E --> T : "сырые данные (DataFrame)"
+T --> L : "очищенные, нормализованные, обезличенные данные"
+
+' Загрузка в DWH
+L --> STG : "полная/инкрементальная копия"
+
+' Трансформация между слоями DWH
+STG --> CORE : "SCD Type 2, денормализация, агрегация по времени"
+CORE --> MART : "сборка витрин для типовых отчётов (продажи, запасы, финансы, отзывы)"
+
+' Поток в BI
+MART --> BI : "SQL-запросы (JDBC/ODBC)"
+
+' Примечания
+note top of IM
+  Частота: потоковые события (Kafka)
+  или ежедневные выгрузки
+end note
+
+note right of BA
+  Внешний API,
+  тональность от -1 до +1
+end note
+
+note bottom of BI
+  Визуализация:
+  - объёмы продаж онлайн/офлайн
+  - прогноз закупок
+  - анализ тональности отзывов
+end note
 
 @enduml
