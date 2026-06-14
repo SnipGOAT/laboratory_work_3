@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_Forecast" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="ForecastProcess" name="Прогнозирование закупок с учётом тональности отзывов" isExecutable="true">
+    
+    <bpmn:startEvent id="StartForecast" name="Инициация прогноза">
+      <bpmn:outgoing>Flow_Start_To_Select</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <bpmn:userTask id="SelectParameters" name="Менеджер выбирает период (дата начала и окончания) и категорию товаров">
+      <bpmn:incoming>Flow_Start_To_Select</bpmn:incoming>
+      <bpmn:outgoing>Flow_Select_To_GetSales</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:serviceTask id="GetSalesData" name="Извлечь исторические продажи из Core слоя DWH (факт продаж)">
+      <bpmn:incoming>Flow_Select_To_GetSales</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sales_To_GetSentiment</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="GetSentimentData" name="Извлечь среднюю тональность отзывов из факта отзывов (Core) за тот же период">
+      <bpmn:incoming>Flow_Sales_To_GetSentiment</bpmn:incoming>
+      <bpmn:outgoing>Flow_Sentiment_To_Prepare</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:scriptTask id="PrepareFeatures" name="Подготовка признаков: объединение продаж и тональности, создание lag-переменных">
+      <bpmn:incoming>Flow_Sentiment_To_Prepare</bpmn:incoming>
+      <bpmn:outgoing>Flow_Prepare_To_RunModel</bpmn:outgoing>
+    </bpmn:scriptTask>
+    
+    <bpmn:serviceTask id="RunForecastModel" name="Запустить модель прогнозирования (SARIMA + линейная регрессия с тональностью)">
+      <bpmn:incoming>Flow_Prepare_To_RunModel</bpmn:incoming>
+      <bpmn:outgoing>Flow_Model_To_Save</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:serviceTask id="SaveForecast" name="Сохранить прогноз (по дням/неделям) в витрину Mart_forecast">
+      <bpmn:incoming>Flow_Model_To_Save</bpmn:incoming>
+      <bpmn:outgoing>Flow_Save_To_Approve</bpmn:outgoing>
+    </bpmn:serviceTask>
+    
+    <bpmn:userTask id="ApproveForecast" name="Менеджер утверждает объёмы закупки (может скорректировать вручную)">
+      <bpmn:incoming>Flow_Save_To_Approve</bpmn:incoming>
+      <bpmn:outgoing>Flow_Approve_To_End</bpmn:outgoing>
+    </bpmn:userTask>
+    
+    <bpmn:endEvent id="EndForecast" name="Завершение прогноза">
+      <bpmn:incoming>Flow_Approve_To_End</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_Start_To_Select" sourceRef="StartForecast" targetRef="SelectParameters" />
+    <bpmn:sequenceFlow id="Flow_Select_To_GetSales" sourceRef="SelectParameters" targetRef="GetSalesData" />
+    <bpmn:sequenceFlow id="Flow_Sales_To_GetSentiment" sourceRef="GetSalesData" targetRef="GetSentimentData" />
+    <bpmn:sequenceFlow id="Flow_Sentiment_To_Prepare" sourceRef="GetSentimentData" targetRef="PrepareFeatures" />
+    <bpmn:sequenceFlow id="Flow_Prepare_To_RunModel" sourceRef="PrepareFeatures" targetRef="RunForecastModel" />
+    <bpmn:sequenceFlow id="Flow_Model_To_Save" sourceRef="RunForecastModel" targetRef="SaveForecast" />
+    <bpmn:sequenceFlow id="Flow_Save_To_Approve" sourceRef="SaveForecast" targetRef="ApproveForecast" />
+    <bpmn:sequenceFlow id="Flow_Approve_To_End" sourceRef="ApproveForecast" targetRef="EndForecast" />
+    
+  </bpmn:process>
+  
+  <!-- BPMN Diagram (графическое расположение) -->
+  <bpmndi:BPMNDiagram id="BPMNDiagram_Forecast">
+    <bpmndi:BPMNPlane id="BPMNPlane_Forecast" bpmnElement="ForecastProcess">
+      <bpmndi:BPMNShape id="StartForecast_di" bpmnElement="StartForecast">
+        <dc:Bounds x="50" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SelectParameters_di" bpmnElement="SelectParameters">
+        <dc:Bounds x="130" y="180" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GetSalesData_di" bpmnElement="GetSalesData">
+        <dc:Bounds x="320" y="180" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="GetSentimentData_di" bpmnElement="GetSentimentData">
+        <dc:Bounds x="510" y="180" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="PrepareFeatures_di" bpmnElement="PrepareFeatures">
+        <dc:Bounds x="700" y="180" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="RunForecastModel_di" bpmnElement="RunForecastModel">
+        <dc:Bounds x="890" y="180" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SaveForecast_di" bpmnElement="SaveForecast">
+        <dc:Bounds x="1080" y="180" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="ApproveForecast_di" bpmnElement="ApproveForecast">
+        <dc:Bounds x="1270" y="180" width="140" height="60" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndForecast_di" bpmnElement="EndForecast">
+        <dc:Bounds x="1460" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <!-- Edges -->
+      <bpmndi:BPMNEdge id="Edge_Start_Select" bpmnElement="Flow_Start_To_Select">
+        <di:waypoint x="86" y="218" />
+        <di:waypoint x="130" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Select_Sales" bpmnElement="Flow_Select_To_GetSales">
+        <di:waypoint x="270" y="210" />
+        <di:waypoint x="320" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Sales_Sentiment" bpmnElement="Flow_Sales_To_GetSentiment">
+        <di:waypoint x="460" y="210" />
+        <di:waypoint x="510" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Sentiment_Prepare" bpmnElement="Flow_Sentiment_To_Prepare">
+        <di:waypoint x="650" y="210" />
+        <di:waypoint x="700" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Prepare_Model" bpmnElement="Flow_Prepare_To_RunModel">
+        <di:waypoint x="840" y="210" />
+        <di:waypoint x="890" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Model_Save" bpmnElement="Flow_Model_To_Save">
+        <di:waypoint x="1030" y="210" />
+        <di:waypoint x="1080" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Save_Approve" bpmnElement="Flow_Save_To_Approve">
+        <di:waypoint x="1220" y="210" />
+        <di:waypoint x="1270" y="210" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Edge_Approve_End" bpmnElement="Flow_Approve_To_End">
+        <di:waypoint x="1410" y="210" />
+        <di:waypoint x="1460" y="218" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
